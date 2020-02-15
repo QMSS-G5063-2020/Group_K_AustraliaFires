@@ -4,7 +4,7 @@
 
 **ideas** 
 
-- hex map of intensity
+- hex map of intensity (it would be super cool to make an animated kde plot actually)
 - social media or news interest over time,
 - google trends by geography
 - insurance/damages - how or what to quantify
