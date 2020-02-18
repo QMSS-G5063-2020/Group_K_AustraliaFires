@@ -1,0 +1,31 @@
+---
+title: "Gender equality"
+author: "Anna Takacs"
+date: "2/2/2020"
+output: html_document
+---
+```{r}
+# install.packages("rtweet")
+library(rtweet)
+library(httpuv)
+library(rtweet)
+library(ggplot2)
+library(dplyr)
+library(tidytext)
+```
+
+```{r}
+AusFire <- search_tweets("#Australiafires", n = 10000)
+head(AusFire)
+AusFire <- as.data.frame(AusFire)
+cols <- c("hashtags", "symbols","urls_url","urls_t.co", "urls_expanded_url", "media_url", "media_t.co", "media_expanded_url", "media_type", "ext_media_url", "ext_media_t.co", "ext_media_expanded_url", "ext_media_type", "mentions_user_id", "mentions_screen_name", "geo_coords", "coords_coords", "bbox_coords")
+AusFire[,cols] <- lapply(AusFire[,cols], as.character)
+write.csv(AusFire, 'Australian_fire_tweets.csv')
+```
+
+
+
+
+
+
+
