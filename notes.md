@@ -10,6 +10,8 @@
 - insurance/damages - how or what to quantify
 - could we get animal data?
 - climate: can we get temperature, humidity, precipitation?
+- incorporate social demo data to show the effects on people (or on fire management techniques that vary by demographic)
+
 
 
 
@@ -19,4 +21,6 @@
 - [Bureau of Meterology](http://www.bom.gov.au/climate) - seems a bit annoying to get RAW data as you can only get 1 measurement (eg, max temp) from 1 climate station at a time, over the course of multiple screens. no source of aggregate data, which makes sense
 
 - Same as above, click on "data services" on left menu - this seems to be something a bit easier to navigate, but the data is nested in html tables [for example](http://www.bom.gov.au/climate/dwo/202001/html/IDCJDW5020.202001.shtml)
+
+- demographic stuff ????
 
