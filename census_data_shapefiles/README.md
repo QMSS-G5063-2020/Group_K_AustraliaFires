@@ -12,7 +12,7 @@ Best method for using the files contained here:
 
 3b) If your goal is to download fresh 2019 population estimates for Australia's states and territories, run the 'aus_erp_2019_by_state_territory' script, which will output a fresh copy of the data into the 'erp_2018_2019_data' directory.
 
-4) If the goal is to work with the population estimates and the relevant shape file, open the script beginning with the statistical level of aggregation you are interested in (i.e. SA2, SA3, SA4, ST, GCCSA) and run the code. The script will read in the relevant data and shape file, as well as merge the two into a SpatialDataFrame ready for use.
+4) If the goal is to work with the population estimates and the relevant shape file, open the script beginning with the statistical level of aggregation you are interested in (i.e. SA2, SA3, SA4, ST, GCCSA) that ends in "shape_data_merge" and run the code. The script will read in the relevant data and shape file, as well as merge the two into a SpatialDataFrame ready for use.
 
 	NOTE: You do not need to run the scripts for downloading and outputting data if you download all of the directories. The data output by the scripts in steps 3a and 3b are already present in the 'erp_2018_2019_data' directory.
 
