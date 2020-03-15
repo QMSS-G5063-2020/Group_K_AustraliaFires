@@ -8,13 +8,13 @@ Created on Fri Oct  4 07:35:36 2019
 from crawler import crawler
 
 my_path = '/Users/annatakacs/Downloads/Columbia/Study/Semester_2/NLP/HW/HW2/'
-the_query = ['australia fire', 'topic 2', 'topic 3', 'topic 4'] 
-num_docs = 50
+the_query = 'australian wildfire'
+num_docs = 1000
 
 my_func = crawler()
 
-for i in the_query: 
-    my_func.write_crawl_results(my_path, i, num_docs)
+
+my_func.write_crawl_results(my_path, the_query, num_docs)
 
 
 # Question 1

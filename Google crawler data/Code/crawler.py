@@ -13,23 +13,30 @@ class crawler(object):
         import requests
         import re
         tmp_text = ''
+        
+        content = requests.get(tmp_url_in)
+        soup = BeautifulSoup(content.text, 'html.parser')
+    
+        tmp_text = soup.findAll('p') 
+    
+        tmp_text = [word.text for word in tmp_text]
+        tmp_text = ' '.join(tmp_text)
+        tmp_text = re.sub('\W+', ' ', re.sub('xa0', ' ', tmp_text))
         try:
-            content = requests.get(tmp_url_in)
-            soup = BeautifulSoup(content.text, 'html.parser')
-    
-            tmp_text = soup.findAll('p') 
-    
-            tmp_text = [word.text for word in tmp_text]
-            tmp_text = ' '.join(tmp_text)
-            tmp_text = re.sub('\W+', ' ', re.sub('xa0', ' ', tmp_text))
             for i in soup.findAll('time'):
-                print('hello')
+                #print('hello')
                 if i.has_attr('datetime'):
                     time = (i['datetime'])
+                else:
+                    time =  -1
+            return (tmp_text, time)
         except:
-            pass
+            return (tmp_text, -1)
+        #print(tmp_text, time)
+        
+        
     
-        return (tmp_text, time)
+        
 
 # Fetches the top ~50 sites, URLs, from a google search:
     def fetch_urls(self, query_tmp, cnt):
@@ -98,35 +105,24 @@ class crawler(object):
         except:
             pass
 
-        the_data = pd.DataFrame(columns = ['body_basic', 'body_stem', 'label'])
+        the_data = pd.DataFrame(columns = ['body_basic', 'time'])
         #full_list = {}
         #full_data = pd.DataFrame(columns = ['body_basic', 'body_stem', 'label'])
         cnt = 0
         for word in the_urls_list:
-            tmp_txt = self.my_scraper(word) # Scrapes the text from the URLs obtained
-            #print(tmp_txt)
+            tmp_txt, time = self.my_scraper(word) # Scrapes the text from the URLs obtained
+            #print(temp)
+            #tmp_txt = temp[0]
+            #time = temp[1]
+            # print(tmp_txt)
+            #print(time)
             if len(tmp_txt) != 0: # If the text exists (length != 0), then save the file as...
                 try:
-                    #the_data['body_basic'] = tmp_txt
-                    body = ""
                     
-                    my_stemmer = PorterStemmer()
-                    for word in tmp_txt.split():
-                        #the_data['body_stem'] = my_stemmer.stem(word)
-                        body = body + my_stemmer.stem(word) + " "
+                    the_data = the_data.append({'body_basic':tmp_txt, 'time': time}, ignore_index=True)
                     
-                    #print(body)
-                    #the_data['label'] = my_query
-                    the_data = the_data.append({'body_basic':tmp_txt, 'body_stem':body, 'label':'_'.join(my_query.split(' '))}, 'time': time, ignore_index=True)
-                    #the_data.save(the_path)
                     print(the_data)
-                    # the_data.save(my_path)
-                    #full_list[my_query] = the_data
-                    #full_data = pd.DataFrame[full_data, the_data]
-                    # tmp_file = open(the_path + re.sub('[ ]+', '_', re.sub('"', '', my_query)) + '/' + str(cnt) + '.txt',"w") 
-                    # tmp_file.write(tmp_txt) # Writes a txt file 
-                    # tmp_file.close()
-                    # print (word) # Prints out the URLs
+                    
                     cnt += 1
                 except:
                     pass
