@@ -1,0 +1,209 @@
+---
+title: "DataViz Project"
+author: "Anna Takacs"
+date: "4/27/2020"
+output: html_document
+---
+```{r Load packages}
+library(dplyr)
+library(ggplot2)
+library(tidytext)
+library(tm)
+library(dplyr)
+library(tidytext)
+library(gsubfn)
+library(stringr)
+```
+
+
+```{r Load the data and clean}
+tweets <- read.csv("tweets_clean.csv")
+tweets <- tweets %>%
+  select(X, text, date, retweets, favorites, mention, hashtag, username, month_created, day_created)
+tweets$text <- as.character(tweets$text)
+tweets$text <- removeWords(tweets$text, stopwords("english"))
+tweets$text <- stripWhitespace(tweets$text)
+tweets$text <-  gsub("https\\S*", "", tweets$text)
+tweets$text <-  gsub("@\\S*", "", tweets$text) 
+tweets$text  <-  gsub("[[:punct:]]", "", tweets$text)
+tweets$date <-  gsub("+00:00", "", tweets$date)
+tweets$date <- str_replace(tweets$date, "([+])", "")
+tweets$date <- as.POSIXct(tweets$date)
+```
+
+```{r Create new variables}
+tweets <- tweets %>%
+  group_by(date) %>%
+  mutate(average_retweet = mean(retweets))
+tweets$average_retweet <- round(tweets$average_retweet, 2)
+
+tweets <- tweets %>%
+  group_by(date) %>%
+  mutate(count_per_day = n())
+tweets$date <- as.Date(tweets$date)
+```
+
+
+## Sentiment score
+```{r Assign sentiment score to each Tweet}
+library(sentimentr)
+senti_table <- sentiment_by(tweets$text, by = NULL)
+senti_table$ID <- seq.int(nrow(senti_table))
+senti_table <- senti_table %>%
+  select(ID, ave_sentiment)
+senti_table$ave_sentiment <- senti_table$ave_sentiment  %>%
+    round(digits = 3)
+
+tweets$ID <- seq.int(nrow(tweets))
+senti_tweets <- merge(tweets, senti_table, by = "ID")
+
+senti_tweets <- senti_tweets %>%
+  group_by(date) %>%
+  mutate(average_senti = mean(ave_sentiment))
+```
+
+```{r}
+#library(lubridate)
+#senti_later_tweets <- senti_tweets %>% 
+  #filter(date > as.POSIXct("2019-11-30 01:00:00"))
+
+senti_graph <- ggplot(senti_tweets) + geom_boxplot(aes(x = date, y = ave_sentiment, group = date)) +
+  theme_ipsum() +
+  labs(title = "Distribution of the sentiments over time",
+       subtitle = "For individual Tweets",
+       caption = "Data source: Twitter") +
+  theme(
+    plot.title = element_text(hjust = 0, size = 12),     
+    plot.caption = element_text(hjust = 0, face = "italic")) +
+  labs(x = "Date", y = "Sentiment score")
+senti_graph
+
+# This does not run, if it doesn't work, just use the original ggplot graph
+ggplotly(senti_graph, dynamicTicks = TRUE) %>%
+  rangeslider() %>%
+  layout(hovermode = "x")
+```
+
+
+# Word spider graph
+```{r}
+library(widyr)
+tweet_paired <- senti_tweets %>%
+  dplyr::select(text) %>%
+  unnest_tokens(paired_words, text, token = "ngrams", n = 2)
+
+tweet_paired <- subset(tweet_paired, select = -date)
+
+tweet_paired %>%
+  count(paired_words, sort = TRUE)
+
+library(tidyr)
+tweet_paired <- tweet_paired %>%
+  separate(paired_words, c("word1", "word2"), sep = " ")
+tweets_filtered <- tweet_paired %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+tweets_counts <- tweets_filtered %>%
+  count(word1, word2, sort = TRUE)
+
+library(igraph)
+library(ggraph)
+library(ggrepel)
+
+set.seed(24)
+word_distance <- tweets_counts %>%
+        filter(n >= 1100) %>%
+        graph_from_data_frame() %>%
+        ggraph(layout = "fr") +
+        geom_node_point(color = "blue", size = 2, alpha = 0.3) +
+        geom_node_text(aes(label = name), vjust = 1.8, size = 3, check_overlap = TRUE) +
+        labs(title = "Word network about Australian wildfires",
+             x = "Relative distance of words", y = "Relative distance of words") + theme_ipsum()
+word_distance
+```
+
+```{r}
+tweets_tokens <- tweets %>%
+  select(text) %>%
+  unnest_tokens(word, text)
+
+tweets_tokens <- tweets_tokens %>%
+  anti_join(stop_words)
+
+tweets_emotions <- tweets_tokens %>%
+  inner_join(get_sentiments("nrc")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+tweets_emotions
+
+plot <- ggplot(tweets_emotions, aes(as.factor(sentiment), fill = sentiment)) +
+                 geom_bar(stat="count", position = "dodge", alpha = 0.6) +
+  theme_ipsum() +
+  coord_flip() +
+   labs(title = "Different sentiments in Tweets in Europe",
+       caption = "Data source: Survey of Consumer Finances (1989 - 2016)") +
+  theme(
+    plot.title = element_text(hjust = 0, size = 12),     
+    plot.caption = element_text(hjust = 0, face = "italic")) +
+   labs(x = "Sentiment category", y = "Proportion of sentiment words", colour = "Sentiments") +
+  theme(legend.position = "none")
+plot <- plot + scale_fill_brewer(palette="Paired")
+
+
+ggplotly(plot)
+```
+
+# Positive and negative words
+```{r}
+mysample_words <- tweets %>%
+  select(text) %>%
+  unnest_tokens(word, text)
+mysample_words <- mysample_words %>%
+  anti_join(stop_words)
+
+
+mysample_negsent <- mysample_words %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+mysample_negsent %>% 
+  group_by(sentiment) %>%
+  top_n(30) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) + geom_col(show.legend = FALSE) + 
+  facet_wrap(~sentiment, scales = "free_y") + 
+  labs(title = "Top 30 negative and positive words in Tweets",
+       subtitle = "Classified based on Bing dictionaries",
+    y = "Number of words",
+    x = "") + coord_flip() + theme_ipsum() +
+  theme(
+    plot.title = element_text(hjust = 0, size = 10)) +
+    theme_ipsum()
+```
+
+# Plotly smaller sample
+
+```{r Get a small sample from the data}
+mysample <- tweets[sample(1:nrow(tweets), 1000,
+   replace=FALSE), ]
+```
+
+```{r}
+x <- list(
+  title = "Date")
+y <- list(
+  title = "Number of Tweets (size based on the number of retweets)")
+fig <- mysample %>%
+  plot_ly(
+    type = 'scatter',
+    mode = 'markers',
+    x = ~date,
+    y = ~count_per_day,
+    marker = list(size = ~average_retweet, sizemode = 'area'),
+    hovertemplate = "<br>Number of Tweets: %{y} </br>Date: %{x}"
+      )
+fig %>%
+  layout(xaxis = x, yaxis = y, title = "Number of Tweets over time")
+```
