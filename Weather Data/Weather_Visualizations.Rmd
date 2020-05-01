@@ -1,0 +1,127 @@
+---
+title: "Weather Visualizations"
+output: html_notebook
+---
+```{R}
+library(tidyverse)
+chart_melt <- read_csv("chart_melt.csv")
+
+
+library(htmlwidgets)
+library(plotly)
+
+plot1 <- ggplot(chart_melt, aes(x=YEAR, y=weather_index, colour=variable)) +
+          geom_point(aes(text=paste(metric,":", weather_value))) +
+          geom_line() +
+          facet_grid(~variable) +
+          xlab("Year") + ylab("Weather Index") + ggtitle("Australia Weather Metrics 2010-2019") + 
+          theme_minimal() +
+          theme(legend.position = "none",
+                plot.title = element_text(face = "bold", size = 20, hjust = 0.5), 
+                axis.text.x = element_text(angle = 60, size = 8, hjust = 10),
+                axis.title.x = element_text(vjust = 0.5)) +
+          scale_x_continuous(breaks = c(2010, 2012, 2014, 2016, 2018))
+
+ggplotly(plot1, tooltip = "text")
+```
+
+```{R}
+dt <- read_csv("dt.csv")
+
+
+library(DT)
+
+FireSeason19_20 <- dt %>% datatable(rownames = FALSE, 
+                                    colnames = c("Week", "Average Temperature (C)", "Total Precipitation (mm)", 
+                                           "Average Humidity", "Max Wind (m/s)"),
+                                    filter = c("top"), options = list(language = list(sSearch = "Filter:"))) %>%
+                          formatRound(c('avg_temp', 'sum_precip', 'avg_humidity', 'max_wind'), 0)
+
+FireSeason19_20 <- FireSeason19_20 %>% formatStyle('avg_temp',
+                                                    background = styleColorBar(dt$avg_temp, 'tomato'),
+                                                    backgroundPosition = 'right') %>%
+                                       formatStyle('sum_precip',
+                                                    background = styleColorBar(dt$sum_precip, 'lightblue'),
+                                                    backgroundPosition = 'right') %>%
+                                       formatStyle('avg_humidity',
+                                                    background = styleColorBar(dt$avg_humidity, 'navajowhite'),
+                                                    backgroundPosition = 'right') %>%
+                                       formatStyle('max_wind',
+                                                    background = styleColorBar(dt$max_wind, 'lightgrey'),
+                                                    backgroundPosition = 'right')
+FireSeason19_20
+
+```
+
+```{R}
+combined <- read_csv("combined.csv")
+
+
+#changing the buckets for each group
+combined$temp_change[combined$temp_change > 25] <- "+25% to +50%"
+combined$temp_change[combined$temp_change > 10 & combined$temp_change <= 25] <- "+10% to +25%"
+combined$temp_change[combined$temp_change > 0  & combined$temp_change <= 10] <- "flat to +10%"
+combined$temp_change[combined$temp_change == -1] <- "flat to -10%"
+combined$temp_change[combined$temp_change == -3] <- "flat to -10%"
+combined$temp_change[combined$temp_change == 9] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 8] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 7] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 6] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 5] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 4] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 3] <- "flat to +10%"
+
+combined$precip_change[combined$precip_change < -50] <- "> -50% Change"
+
+combined$humidity_change <- combined$humidity_change %>%
+                        replace(combined$humidity_change >= 0 & combined$humidity_change <= 10, "flat to +10%") %>%
+                        replace(combined$humidity_change < 0 & combined$humidity_change >= -10, "flat to -10%") %>%
+                        replace(combined$humidity_change < -10 & combined$humidity_change >= -25, "-10% to -25%") %>%
+                        replace(combined$humidity_change < -25, "-25% to -50%")
+
+combined$wind_change <- combined$wind_change %>%
+                        replace(combined$wind_change >= 0 & combined$wind_change <= 10, "flat to +10%") %>%
+                        replace(combined$wind_change < 0, "flat to -10%") %>%
+                        replace(combined$wind_change > 10, "+10% to +25%")
+
+#adding colors
+library(RColorBrewer)
+pal1 = colorFactor("Reds", reverse = TRUE, domain = combined$temp_change)
+color_temp = pal1(combined$temp_change)
+pal2 = colorFactor("Blue", reverse = TRUE, domain = combined$precip_change)
+color_precip = pal2(combined$precip_change)
+pal3 = colorFactor("YlOrBr", reverse = TRUE, domain = combined$humidity_change)
+color_humidity = pal3(combined$humidity_change)
+pal4 = colorFactor("Greys", reverse = TRUE, domain = combined$wind_change)
+color_wind = pal4(combined$wind_change)
+```
+
+
+```{R}
+library(leaflet)
+
+map1 <- combined %>% leaflet() %>% 
+                     addTiles('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png') %>% 
+                     addCircles(color = color_temp, group = "Temperature") %>%
+                     addCircles(color = color_precip, group = "Precipitation") %>%
+                     addCircles(color = color_humidity, group = "Humidity") %>%
+                     addCircles(color = color_wind, group = "Wind") %>%
+                     setView(lng = 135, lat = -28, zoom = 4.1) %>%
+                     addLayersControl(overlayGroups = c("Temperature", "Precipitation", "Humidity", 
+                                                        "Wind")) %>%
+                     clearBounds() %>%
+                     addLegend(pal = pal1, values = combined$temp_change, title = "Temperature % Change", 
+                               group = "Temperature") %>%
+                     addLegend(pal = pal2, values = combined$precip_change, title = "Precipitation % Change", 
+                               group = "Precipitation") %>%
+                     addLegend(pal = pal3, values = combined$humidity_change, title = "Humidty % Change", 
+                               group = "Humidity") %>%
+                     addLegend(pal = pal4, values = combined$wind_change, title = "Wind % Change", 
+                               group = "Wind")
+
+map1
+
+```
+
+
+
