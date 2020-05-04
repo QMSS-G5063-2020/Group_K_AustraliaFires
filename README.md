@@ -5,7 +5,7 @@ Text Analysis folder:
 - Dataset uploaded (Katie)
 - Python cleaning code + saved dataset (Anna)
 - R cleaning code and graphs (Anna)
-- Summary Rmd - the summary of the findings (Anna
+- Summary Rmd - the summary of the findings (Anna)
 
 Tweets folder:
 - Twitter connect code, small sample only (Anna)
