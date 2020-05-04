@@ -13,3 +13,8 @@ Tweets folder:
 Google crawler data: 
 - A Python Google crawler code (Anna)
 - Dataset through this code (Anna)
+
+Weather Data:
+- Dataset obtained by the Weather Source company for academic purposes (Carissa)
+- Variables chosen based on relevance and availablity (Carissa)
+- R cleaning code and graphs (Carissa)
