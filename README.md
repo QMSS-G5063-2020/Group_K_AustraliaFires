@@ -16,5 +16,6 @@ Google crawler data:
 
 Weather Data:
 - Dataset obtained by the Weather Source company for academic purposes (Carissa)
+- Note: Too large to upload even a zipped version of the original file so a subset was chosen (Carissa)
 - Variables chosen based on relevance and availablity (Carissa)
 - R cleaning code and graphs (Carissa)
