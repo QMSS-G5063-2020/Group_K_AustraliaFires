@@ -1,0 +1,23 @@
+---
+title: "Texts"
+author: "Anna Takacs"
+date: "5/3/2020"
+output: html_document
+---
+ 
+# Graph 1
+Between November 2019 and March 2020, Twitter participation levels showed a significant increase related to the Australian fires. The increased activity level was a community response, both from individuals and from organizations, to the tragedies of the latest wildfires that had devastating effects on the wildlife across Australia. As the graph shows, the number of Tweets have risen from closely zero to 30 000 per day and social interactions have also increased in the form of reposts. This graph presents the scale of the changes in social interactions and the speed of changes in the online sphere. As seen from previous graphs, even though temperature change has been gradual over the past decade, events like large scale fires drive social focus. 
+
+# Graph 2
+When it comes to online interactions, there are two main approaches to understand the content of the textual data. One is to screen the sentiment of the text and one is the extract topical focuses. To create this graph, a sentiment score has been assigned to each individual tweet and the distributions has been plotted for each day between June 2019 and April 2020. Similarly to the previous graph, changes started to occur from November 2019 but sentiments did not fluctuate on such a large scale as participation. Furthermore, as this graph presents the results can lead to biased interpretations as until November 2019 the reader might conclude that sentiments did not fluctuate as much, but it can be due to the fact that not as many tweets were available and so, the scale was smaller. 
+
+# Graph 3
+To better understand how sentiments are captured in the text, this plot shows the 15 most frequently used positive and negative words. As we have understood from the previous graph, the sentiments are fairly balanced between positive and negative, while this graph shows that there are more negative words that are used. It is a biased interpretation, as it is only true for the top 15 negative and positive words, and so, negative words are more centered around a few specific terms while there is a larger spread of words expressing positive sentiments. The word support is far the most used word with positive sentiment while the words devastating and smoke drives the other end of the spectrum amongst the tweets. 
+
+# Graph 4
+Understanding the sentiment of the Twitter dataset in more detail and going beyond a two-end spectrum, based on the use of the words in the sample, the following graph shows that fear and trust also played a key role in the online sphere. While sadness and anger also showed a stronger effect. 
+As discussed earlier, temperature change has been gradual over the past decades and even though there has been a sudden increase in the online participation, least strong amongst all sentiments has been surprise. 
+
+
+#Graph 5
+And lastly, to better understand the topical nature of the tweets, the last graph present an abstract interpretation of the topic in the tweets. It is derived from bigrams where word combinations that frequently appear together are observed and plotted. The distance between words is aligned with the frequency of the word given word combination. This type of graph provides slightly more detail than a word cloud, yet, it is not as insightful as a Latent Dirichlet Allocation model. From the graph, we can still understand that point-in-time events and relief response plays a key role in the texts, but many talk about climate change, air quality and wildlife. 
