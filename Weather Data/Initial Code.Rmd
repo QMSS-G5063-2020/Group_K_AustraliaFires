@@ -1,0 +1,257 @@
+---
+title: "Data Vis Project"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+data <- read_csv("history-postalcode-day-au-metric-2010-2020.csv")
+data <- data %>% filter(COUNTRY == "AU")
+```
+
+```{R}
+yearly <- data %>% mutate(YEAR = as.numeric(format(DATE_VALID_STD,'%Y'))) %>%
+                   select(-DATE_VALID_STD, -COUNTRY, -MIN_WIND_SPEED_80M_KMPH, -MIN_WIND_SPEED_100M_KMPH, 
+                          -AVG_WIND_SPEED_80M_KMPH, -AVG_WIND_SPEED_100M_KMPH, -MAX_WIND_SPEED_80M_KMPH, 
+                          -MAX_WIND_SPEED_100M_KMPH, -AVG_WIND_DIRECTION_80M_DEG, -AVG_WIND_DIRECTION_100M_DEG, 
+                          -TOT_SNOWFALL_CM, -DOY_STD) 
+yearly <- yearly %>% group_by(POSTAL_CODE, YEAR) %>% 
+                      summarise(min_temp = mean(MIN_TEMPERATURE_AIR_2M_C), 
+                                avg_temp = mean(AVG_TEMPERATURE_AIR_2M_C), 
+                             max_temp = mean(MAX_TEMPERATURE_AIR_2M_C), min_wind = mean(MIN_WIND_SPEED_10M_KMPH), 
+                             avg_wind = mean(AVG_WIND_SPEED_10M_KMPH), max_wind = mean(MAX_WIND_SPEED_10M_KMPH), 
+                             wind_direction = mean(AVG_WIND_DIRECTION_10M_DEG), 
+                             sum_precip = sum(TOT_PRECIPITATION_CM), 
+                             min_humidity = mean(MIN_HUMIDITY_RELATIVE_2M_PCT), 
+                             max_humidity = mean(MAX_HUMIDITY_RELATIVE_2M_PCT), 
+                             avg_humidity = mean(AVG_HUMIDITY_RELATIVE_2M_PCT))
+
+yearly_nozip <- yearly %>% select(-POSTAL_CODE) %>% group_by(YEAR) %>%
+                           summarise(min_temp = mean(min_temp), avg_temp = mean(avg_temp), 
+                             max_temp = mean(max_temp), min_wind = mean(min_wind), avg_wind = mean(avg_wind), 
+                             max_wind = mean(max_wind), wind_direction = mean(wind_direction), 
+                             sum_precip = sum(sum_precip), min_humidity = mean(min_humidity), 
+                             max_humidity = mean(max_humidity), avg_humidity = mean(avg_humidity))
+```
+
+We decided to look at high level temperature changes over time to show that from 2010 to 2019 temperature has risen in Australia coupled with a decline in precipitation and humidity. For this exercise we looked only at 2010-2019 because those were the only full years included in the reporting. We were given metrics for temperature, precipitation, wind and humidity. For wind we were given multiple heights at which it was measured but only considered looking at 10 meters based on research that fire winds are normally looked at around this height given it is high enough to get away from local changes at the ground level but close enough to indicate wind over a broad area. We have created an index to be able to compare how each weather metric is changing over time. 2010, the first year we have available data is being used as the baseline index (all metrics equal to 100 in 2010). 
+
+```{R}
+chart_index <- yearly_nozip %>% select(YEAR, max_temp, sum_precip, avg_humidity, max_wind) %>%
+                                filter(YEAR != "2020") %>% 
+                                mutate(max_temp_index = (max_temp/21.21211*100), 
+                                       sum_precip_index = (sum_precip/245051.56*100), 
+                                       avg_humidity_index = (avg_humidity/71.07044*100), 
+                                       max_wind_index = (max_wind/17.51735*100)) %>%
+                                select(-max_temp, -sum_precip, -avg_humidity, -max_wind)
+```
+
+```{R}
+library(reshape2)
+chart_melt <- melt(chart_index, id.vars=c("YEAR"), value.name = "weather_index")
+
+chart <- yearly_nozip %>% select(YEAR, max_temp, sum_precip, avg_humidity, max_wind) %>%
+                                filter(YEAR != "2020")
+
+chart_melt2 <- melt(chart, id.vars=c("YEAR"), value.name = "weather_value")
+
+levels(chart_melt$variable) <- c("Temperature", "Precipitation", "Humidity", "Wind")
+levels(chart_melt2$variable) <- c("Temperature", "Precipitation", "Humidity", "Wind")
+chart_melt <- chart_melt %>% left_join(chart_melt2, by = c("YEAR", "variable")) %>% mutate(metric = variable)
+
+levels(chart_melt$metric) <- c("Avg.Temperature (C)", "Sum.Precipitation (mm)", "Avg.Humidity", "Max.Wind (m/s)")
+
+chart_melt$weather_index <- round(chart_melt$weather_index, 1)
+chart_melt$weather_value <- round(chart_melt$weather_value, 1)
+
+write_csv(chart_melt, "chart_melt.csv")
+```
+
+```{R}
+library(htmlwidgets)
+library(plotly)
+
+plot1 <- ggplot(chart_melt, aes(x=YEAR, y=weather_index, colour=variable)) +
+          geom_point(aes(text=paste(metric,":", weather_value))) +
+          geom_line() +
+          facet_grid(~variable) +
+          xlab("Year") + ylab("Weather Index") + ggtitle("Australia Weather Metrics 2010-2019") + 
+          theme_minimal() +
+          theme(legend.position = "none",
+                plot.title = element_text(face = "bold", size = 20, hjust = 0.5), 
+                axis.text.x = element_text(angle = 60, size = 8, hjust = 10),
+                axis.title.x = element_text(vjust = 0.5)) +
+          scale_x_continuous(breaks = c(2010, 2012, 2014, 2016, 2018))
+
+ggplotly(plot1, tooltip = "text")
+```
+
+Taking a closer look at 2019-2020 Fire Season, September 2019 - March 2020 (latest date we have data for) by week. When we are able to look at the weather metrics by week for the 2019-2020 fire season we can see how conditions change in January. Weeks leading up to this point have high temperatures but very low precipitation, humidity and high winds. Mid-month we see preciptitation and humidty increase significantly even in weeks with high temperature and winds decline sharply. This aligns with when the fires began to let-up with the last fire being put out on March 2nd, 2020. 
+
+```{R}
+dt <- data %>% filter(DATE_VALID_STD > '2019-08-31') %>% 
+               select(DATE_VALID_STD, AVG_TEMPERATURE_AIR_2M_C, TOT_PRECIPITATION_CM, 
+                      AVG_HUMIDITY_RELATIVE_2M_PCT, MAX_WIND_SPEED_10M_KMPH) %>%
+               mutate(WEEK = DATE_VALID_STD + 7 - as.numeric(format(DATE_VALID_STD, format = "%u")))
+dt <- dt %>% group_by(WEEK) %>% 
+            summarize(avg_temp = mean(AVG_TEMPERATURE_AIR_2M_C), 
+                      sum_precip = sum(TOT_PRECIPITATION_CM), 
+                      avg_humidity = mean(AVG_HUMIDITY_RELATIVE_2M_PCT), 
+                      max_wind = mean(MAX_WIND_SPEED_10M_KMPH))
+```
+
+```{R}
+library(DT)
+
+FireSeason19_20 <- dt %>% datatable(rownames = FALSE, 
+                                    colnames = c("Week", "Average Temperature (C)", "Total Precipitation (mm)", 
+                                           "Average Humidity", "Max Wind (m/s)"),
+                                    filter = c("top"), options = list(language = list(sSearch = "Filter:"))) %>%
+                          formatRound(c('avg_temp', 'sum_precip', 'avg_humidity', 'max_wind'), 0)
+
+FireSeason19_20 <- FireSeason19_20 %>% formatStyle('avg_temp',
+                                                    background = styleColorBar(dt$avg_temp, 'tomato'),
+                                                    backgroundPosition = 'right') %>%
+                                       formatStyle('sum_precip',
+                                                    background = styleColorBar(dt$sum_precip, 'lightblue'),
+                                                    backgroundPosition = 'right') %>%
+                                       formatStyle('avg_humidity',
+                                                    background = styleColorBar(dt$avg_humidity, 'navajowhite'),
+                                                    backgroundPosition = 'right') %>%
+                                       formatStyle('max_wind',
+                                                    background = styleColorBar(dt$max_wind, 'lightgrey'),
+                                                    backgroundPosition = 'right')
+FireSeason19_20
+```
+
+Here we mapped postal codes to latitude and longitude using geocoding. Some postal codes were not able to be mapped and those were excluded from the visualization. We wanted to display how temperature and preceiptation changed over time in Australia throughout the country. 
+
+```{R}
+#getting lat adn lon from postal codes
+register_google(key = Sys.getenv("GOOGLE_MAPS_API_KEY"), write = TRUE)
+
+postal_codes <- as.character(unique(data$POSTAL_CODE))
+postal_codes <- paste(postal_codes, " Australia")
+
+library(ggmap)
+latlon1 <- geocode(unique(postal_codes[1:1000]))
+latlon2 <- geocode(unique(postal_codes[1001:2000]))
+latlon3 <- geocode(unique(postal_codes[2001:3000]))
+latlon4 <- geocode(unique(postal_codes[3001:3305]))
+
+latlon <- rbind(latlon1, latlon2, latlon3, latlon4)
+postal_codes <- as.character(unique(data$POSTAL_CODE))
+latlon <- cbind(postal_codes, latlon)
+latlon <- rename(latlon, POSTAL_CODE = postal_codes)
+```
+
+```{R}
+dt_postal <- data %>% filter(DATE_VALID_STD > '2019-08-31') %>% 
+                     select(POSTAL_CODE, DATE_VALID_STD, AVG_TEMPERATURE_AIR_2M_C, TOT_PRECIPITATION_CM, 
+                            AVG_HUMIDITY_RELATIVE_2M_PCT, MAX_WIND_SPEED_10M_KMPH) %>%
+                     mutate(WEEK = DATE_VALID_STD + 7 - as.numeric(format(DATE_VALID_STD, format = "%u")))
+dt_postal <- dt_postal %>% group_by(POSTAL_CODE) %>% 
+                          summarize(avg_temp = mean(AVG_TEMPERATURE_AIR_2M_C), 
+                                    sum_precip = sum(TOT_PRECIPITATION_CM), 
+                                    avg_humidity = mean(AVG_HUMIDITY_RELATIVE_2M_PCT), 
+                                    max_wind = mean(MAX_WIND_SPEED_10M_KMPH)) %>%
+                          left_join(latlon, by = "POSTAL_CODE") %>%
+                          filter(is.na(lon)==FALSE, lon > 1)
+
+
+dt_postal18 <- data %>% filter(DATE_VALID_STD < '2019-04-01', DATE_VALID_STD < '2018-08-31') %>% 
+                     select(POSTAL_CODE, DATE_VALID_STD, AVG_TEMPERATURE_AIR_2M_C, TOT_PRECIPITATION_CM, 
+                            AVG_HUMIDITY_RELATIVE_2M_PCT, MAX_WIND_SPEED_10M_KMPH) %>%
+                     mutate(WEEK = DATE_VALID_STD + 7 - as.numeric(format(DATE_VALID_STD, format = "%u")))
+dt_postal18 <- dt_postal18 %>% group_by(POSTAL_CODE) %>% 
+                          summarize(avg_temp = mean(AVG_TEMPERATURE_AIR_2M_C), 
+                                    sum_precip = sum(TOT_PRECIPITATION_CM), 
+                                    avg_humidity = mean(AVG_HUMIDITY_RELATIVE_2M_PCT), 
+                                    max_wind = mean(MAX_WIND_SPEED_10M_KMPH)) %>%
+                          left_join(latlon, by = "POSTAL_CODE") %>%
+                          filter(is.na(lon)==FALSE, lon > 1)
+
+combined <- dt_postal %>% left_join(dt_postal18, by = c("POSTAL_CODE", "lat", "lon")) %>%
+                          mutate(temp_change = round(((avg_temp.x/avg_temp.y - 1)*100), 0), 
+                                 precip_change = round(((sum_precip.x/sum_precip.y - 1)*100), 0), 
+                                 humidity_change = round(((avg_humidity.x/avg_humidity.y - 1)*100), 0), 
+                                 wind_change = round(((max_wind.x/max_wind.y - 1)*100), 0)) %>%
+                          select(POSTAL_CODE, lat, lon, temp_change, precip_change, humidity_change, wind_change)
+```
+
+```{R}
+#changing the buckets for each group
+combined$temp_change[combined$temp_change > 25] <- "+25% to +50%"
+combined$temp_change[combined$temp_change > 10 & combined$temp_change <= 25] <- "+10% to +25%"
+combined$temp_change[combined$temp_change > 0  & combined$temp_change <= 10] <- "flat to +10%"
+combined$temp_change[combined$temp_change == -1] <- "flat to -10%"
+combined$temp_change[combined$temp_change == -3] <- "flat to -10%"
+combined$temp_change[combined$temp_change == 9] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 8] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 7] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 6] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 5] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 4] <- "flat to +10%"
+combined$temp_change[combined$temp_change == 3] <- "flat to +10%"
+
+combined$precip_change[combined$precip_change < -50] <- "> -50% Change"
+
+combined$humidity_change <- combined$humidity_change %>%
+                        replace(combined$humidity_change >= 0 & combined$humidity_change <= 10, "flat to +10%") %>%
+                        replace(combined$humidity_change < 0 & combined$humidity_change >= -10, "flat to -10%") %>%
+                        replace(combined$humidity_change < -10 & combined$humidity_change >= -25, "-10% to -25%") %>%
+                        replace(combined$humidity_change < -25, "-25% to -50%")
+
+combined$wind_change <- combined$wind_change %>%
+                        replace(combined$wind_change >= 0 & combined$wind_change <= 10, "flat to +10%") %>%
+                        replace(combined$wind_change < 0, "flat to -10%") %>%
+                        replace(combined$wind_change > 10, "+10% to +25%")
+
+#adding colors
+library(RColorBrewer)
+pal1 = colorFactor("Reds", reverse = TRUE, domain = combined$temp_change)
+color_temp = pal1(combined$temp_change)
+pal2 = colorFactor("Blue", reverse = TRUE, domain = combined$precip_change)
+color_precip = pal2(combined$precip_change)
+pal3 = colorFactor("YlOrBr", reverse = TRUE, domain = combined$humidity_change)
+color_humidity = pal3(combined$humidity_change)
+pal4 = colorFactor("Greys", reverse = TRUE, domain = combined$wind_change)
+color_wind = pal4(combined$wind_change)
+```
+
+
+```{R}
+library(leaflet)
+
+map1 <- combined %>% leaflet() %>% 
+                     addTiles('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png') %>% 
+                     addCircles(color = color_temp, group = "Temperature") %>%
+                     addCircles(color = color_precip, group = "Precipitation") %>%
+                     addCircles(color = color_humidity, group = "Humidity") %>%
+                     addCircles(color = color_wind, group = "Wind") %>%
+                     setView(lng = 135, lat = -28, zoom = 4.1) %>%
+                     addLayersControl(overlayGroups = c("Temperature", "Precipitation", "Humidity", 
+                                                        "Wind")) %>%
+                     clearBounds() %>%
+                     addLegend(pal = pal1, values = combined$temp_change, title = "Temperature % Change", 
+                               group = "Temperature") %>%
+                     addLegend(pal = pal2, values = combined$precip_change, title = "Precipitation % Change", 
+                               group = "Precipitation") %>%
+                     addLegend(pal = pal3, values = combined$humidity_change, title = "Humidty % Change", 
+                               group = "Humidity") %>%
+                     addLegend(pal = pal4, values = combined$wind_change, title = "Wind % Change", 
+                               group = "Wind")
+
+map1
+
+```
+
+```{R}
+
+```
+
+
+
+
+

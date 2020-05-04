@@ -1,0 +1,41 @@
+YEAR,variable,weather_index,weather_value,metric
+2010,Temperature,100,21.2,Avg.Temperature (C)
+2011,Temperature,100.5,21.3,Avg.Temperature (C)
+2012,Temperature,101.7,21.6,Avg.Temperature (C)
+2013,Temperature,105,22.3,Avg.Temperature (C)
+2014,Temperature,105.3,22.3,Avg.Temperature (C)
+2015,Temperature,104.2,22.1,Avg.Temperature (C)
+2016,Temperature,104.3,22.1,Avg.Temperature (C)
+2017,Temperature,106.1,22.5,Avg.Temperature (C)
+2018,Temperature,105.8,22.4,Avg.Temperature (C)
+2019,Temperature,108,22.9,Avg.Temperature (C)
+2010,Precipitation,100,245051.6,Sum.Precipitation (mm)
+2011,Precipitation,110.1,269803.6,Sum.Precipitation (mm)
+2012,Precipitation,86.4,211837.5,Sum.Precipitation (mm)
+2013,Precipitation,89.1,218239,Sum.Precipitation (mm)
+2014,Precipitation,75.4,184681.2,Sum.Precipitation (mm)
+2015,Precipitation,82.6,202494.5,Sum.Precipitation (mm)
+2016,Precipitation,98.2,240678.3,Sum.Precipitation (mm)
+2017,Precipitation,99.9,244889.2,Sum.Precipitation (mm)
+2018,Precipitation,84.4,206821.6,Sum.Precipitation (mm)
+2019,Precipitation,71.5,175221.6,Sum.Precipitation (mm)
+2010,Humidity,100,71.1,Avg.Humidity
+2011,Humidity,101.7,72.3,Avg.Humidity
+2012,Humidity,97.5,69.3,Avg.Humidity
+2013,Humidity,95.8,68.1,Avg.Humidity
+2014,Humidity,96.7,68.7,Avg.Humidity
+2015,Humidity,97.3,69.1,Avg.Humidity
+2016,Humidity,97.4,69.2,Avg.Humidity
+2017,Humidity,95.9,68.2,Avg.Humidity
+2018,Humidity,94.2,66.9,Avg.Humidity
+2019,Humidity,92.4,65.7,Avg.Humidity
+2010,Wind,100,17.5,Max.Wind (m/s)
+2011,Wind,91,15.9,Max.Wind (m/s)
+2012,Wind,93.1,16.3,Max.Wind (m/s)
+2013,Wind,95,16.6,Max.Wind (m/s)
+2014,Wind,93.1,16.3,Max.Wind (m/s)
+2015,Wind,92,16.1,Max.Wind (m/s)
+2016,Wind,95.2,16.7,Max.Wind (m/s)
+2017,Wind,91.8,16.1,Max.Wind (m/s)
+2018,Wind,95.2,16.7,Max.Wind (m/s)
+2019,Wind,95,16.6,Max.Wind (m/s)
