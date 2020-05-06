@@ -22,3 +22,13 @@ Weather Data:
 - Note: Too large to upload even a zipped version of the original file so a subset was chosen (Carissa)
 - Variables chosen based on relevance and availablity (Carissa)
 - R cleaning code and graphs (Carissa)
+
+Fires Data Folder (Louis):
+- Four datasets obtained through Kaggle containing data released by NASA. 
+- 'fire_nrt_V1_96617.csv' was used for the fire point data and for the final dashboard.
+
+Census Data Shapefiles Folder (Louis):
+- 'Scripts' subdirectory contains R scripts used to retrieve census data through the 'rausstats' package and the Australian Bureau of Statistics (ABS) API.
+- 'erp_2018_2019_data' contains the census data retrieved using the scripts for various levels of census aggregation.
+- 'shapefiles' contains the census shapefiles for vrious levels of aggregation, retrieved from the ABS website.
+- Greater detail is provided in the subdirectory README.md
