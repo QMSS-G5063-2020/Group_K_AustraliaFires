@@ -1,6 +1,8 @@
 # data_wizards
 Data Viz Group Projects
 
+Link to our website: https://lnix.shinyapps.io/data_viz_app/
+
 Text Analysis folder: 
 - Dataset uploaded (Katie)
 - Python cleaning code + saved dataset (Anna)
