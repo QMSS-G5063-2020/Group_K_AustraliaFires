@@ -9,6 +9,10 @@ Rshiny App Code folder:
 - You will need to ensure you have all of the necessary dependencies install (e.g. tidyverse, shiny, DT, etc...).
 - The data contianed in the 'data' subdirectory contains only the minimal datasets needed to reproduce the app, not the full datasets initially collected and wrangled. 
 
+Presentation folder:
+- Contains an mp4 video recording our presentation
+- Also contians our final project book with updates on how the project evolved and why.
+
 Text Analysis folder: 
 - Dataset uploaded (Katie)
 - Python cleaning code + saved dataset (Anna)
