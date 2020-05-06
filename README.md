@@ -3,6 +3,12 @@ Data Viz Group Projects
 
 Link to our website: https://lnix.shinyapps.io/data_viz_app/
 
+Rshiny App Code folder:
+- Contains all of the code necessary to reproduce the final app.
+- To run, download all files, data and R scripts, then open the runApp.R script, set your working directory to the location of the app files, and use the command in the runApp.R script with the path changed to the location of the app files.
+- You will need to ensure you have all of the necessary dependencies install (e.g. tidyverse, shiny, DT, etc...).
+- The data contianed in the 'data' subdirectory contains only the minimal datasets needed to reproduce the app, not the full datasets initially collected and wrangled. 
+
 Text Analysis folder: 
 - Dataset uploaded (Katie)
 - Python cleaning code + saved dataset (Anna)
